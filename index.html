@@ -640,14 +640,14 @@
                     
                     let deleteIds = []; let resetRedIds = []; 
                     
-                    // 🌟 MASTER FIX: HTML එකේ Upload එකත් හදා ඇත 🌟
+                    // 🌟 වැරදි RESULT_KEY ඉවත් කර ඇත 🌟
                     let excelIds = data.map(rawRow => {
                         let cleanRow = {};
                         for (let k in rawRow) { 
                             let cleanK = String(k).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
                             cleanRow[cleanK] = rawRow[k]; 
                         }
-                        let rawAcc = cleanRow["RESULTKEY"] || cleanRow["ORIGINALACCTNO"] || cleanRow["ACCTNO"] || cleanRow["ACCNO"] || cleanRow["ACCOUNTNO"] || cleanRow["ACCOUNTNUMBER"] || "";
+                        let rawAcc = cleanRow["ORIGINALACCTNO"] || cleanRow["ACCTNO"] || cleanRow["ACCNO"] || cleanRow["ACCOUNTNO"] || cleanRow["ACCOUNTNUMBER"] || "";
                         return String(rawAcc).toUpperCase().replace(/[^A-Z0-9]/g, '');
                     }).filter(id => id.length >= 4);
 
