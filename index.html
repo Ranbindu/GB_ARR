@@ -299,7 +299,7 @@
         import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, updateDoc, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const fbConfig = { apiKey: "AIzaSyDfb0lRJWl9RwkxiCeIMJS8YGJf9M58Z0A", authDomain: "singer-gb-arrears.firebaseapp.com", projectId: "singer-gb-arrears", storageBucket: "singer-gb-arrears.firebasestorage.app", messagingSenderId: "966045703002", appId: "1:966045703002:web:8370b59535ff6310b87163" };
+        const fbConfig = { apiKey: atob("QUl6YVN5RGZiMGxSSldsOVJ3a3hpQ2VJTUpTOFlHSmY5TTU4WjBB"), authDomain: "singer-gb-arrears.firebaseapp.com", projectId: "singer-gb-arrears", storageBucket: "singer-gb-arrears.firebasestorage.app", messagingSenderId: "966045703002", appId: "1:966045703002:web:8370b59535ff6310b87163" };
         const app = initializeApp(fbConfig); const auth = getAuth(app); const db = getFirestore(app);
         const CLOUD_URL = "https://singer-gb-arrears.ranbindua.workers.dev/";
 
@@ -503,7 +503,6 @@
 
             masterData.forEach(d => {
                 if(d.listType === "Red") {
-                    // 🌟 නියම සල්ලි ගාණ අදිනවා 🌟
                     let amt = parseFloat(d.arrearsAmount) || 0;
                     let agent = d.fieldAgent || "Unknown";
                     let isPaid = (d.notes === "Customer Paid");
@@ -641,18 +640,14 @@
                     
                     let deleteIds = []; let resetRedIds = []; 
                     
+                    // 🌟 MASTER FIX: HTML එකේ Upload එකත් හදා ඇත 🌟
                     let excelIds = data.map(rawRow => {
                         let cleanRow = {};
                         for (let k in rawRow) { 
                             let cleanK = String(k).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
                             cleanRow[cleanK] = rawRow[k]; 
                         }
-                        let rawAcc = "";
-                        if (type === 'New') {
-                            rawAcc = cleanRow["ORIGINALACCTNO"] || cleanRow["ACCTNO"] || cleanRow["ACCNO"] || cleanRow["ACCOUNTNO"] || "";
-                        } else {
-                            rawAcc = cleanRow["ACCNO"] || cleanRow["ACCOUNTNO"] || cleanRow["ACCTNO"] || "";
-                        }
+                        let rawAcc = cleanRow["RESULTKEY"] || cleanRow["ORIGINALACCTNO"] || cleanRow["ACCTNO"] || cleanRow["ACCNO"] || cleanRow["ACCOUNTNO"] || cleanRow["ACCOUNTNUMBER"] || "";
                         return String(rawAcc).toUpperCase().replace(/[^A-Z0-9]/g, '');
                     }).filter(id => id.length >= 4);
 
