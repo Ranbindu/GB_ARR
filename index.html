@@ -298,37 +298,26 @@
         import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, updateDoc, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 🌟 GITHUB SECRET SCANNER TRICK 🌟
-        const fbConfig = { 
-            apiKey: atob("QUl6YVN5RGZiMGxSSldsOVJ3a3hpQ2VJTUpTOFlHSmY5TTU4WjBB"),
-            authDomain: "singer-gb-arrears.firebaseapp.com", 
-            projectId: "singer-gb-arrears", 
-            storageBucket: "singer-gb-arrears.firebasestorage.app", 
-            messagingSenderId: "966045703002", 
-            appId: "1:966045703002:web:8370b59535ff6310b87163" 
-        };
+        const fbConfig = { apiKey: "AIzaSyDfb0lRJWl9RwkxiCeIMJS8YGJf9M58Z0A", authDomain: "singer-gb-arrears.firebaseapp.com", projectId: "singer-gb-arrears", storageBucket: "singer-gb-arrears.firebasestorage.app", messagingSenderId: "966045703002", appId: "1:966045703002:web:8370b59535ff6310b87163" };
         const app = initializeApp(fbConfig); const auth = getAuth(app); const db = getFirestore(app);
-        
         const CLOUD_URL = "https://singer-gb-arrears.ranbindua.workers.dev/";
 
         let masterData = []; 
         let phoneDirectory = {}; 
 
+        const daySelects = [document.getElementById("managerDayFilter"), document.getElementById("progressDaySelect")];
         let tdObj = new Date(); let td = tdObj.getDate();
         let sysToday = tdObj.getFullYear() + "-" + String(tdObj.getMonth()+1).padStart(2,'0') + "-" + String(tdObj.getDate()).padStart(2,'0');
 
-        const setupFilters = () => {
-            let dayFilters = [document.getElementById("managerDayFilter"), document.getElementById("progressDaySelect")];
-            dayFilters.forEach(sel => {
-                if(!sel) return;
+        daySelects.forEach(select => {
+            if(select) {
                 for(let i=1; i<=31; i++) {
                     let opt = document.createElement("option"); opt.value=i; opt.text=i + " වෙනිදා"; 
-                    if(i===td && sel.id !== "progressDaySelect") opt.selected=true; 
-                    sel.appendChild(opt);
+                    if(i===td && select.id !== "progressDaySelect") opt.selected=true; 
+                    select.appendChild(opt);
                 }
-            });
-        };
-        setupFilters();
+            }
+        });
 
         window.logout = () => { signOut(auth).then(() => { sessionStorage.removeItem("singerCache"); navigate('loginPage'); document.getElementById('loginStatus').innerText = ""; }); };
 
@@ -402,7 +391,7 @@
             </tr>`;
         }
 
-        window.renderManagerDashboard = () => {
+        function renderManagerDashboard() {
             let t=0, y=0, r=0;
             masterData.forEach(d => {
                 t++; let att = parseInt(d.callAttempts) || 0;
@@ -411,7 +400,7 @@
             });
             document.getElementById('dashTotal').innerText = t; document.getElementById('dashYellow').innerText = y; document.getElementById('dashRed').innerText = r; document.getElementById('pFieldCount').innerText = r;
             window.updateProgressSummary();
-        };
+        }
 
         window.navigateProgress = () => { window.navigate('progressPage'); window.updateProgressSummary(); };
         window.navigateManagerCC = () => { window.navigate('callCenterDetailsPage'); syncManagerView(); };
@@ -454,7 +443,7 @@
             document.getElementById('pTarget').innerHTML = `${targetDay} <div style="font-size:12px; margin-top:5px; opacity:0.8;">(Open: ${openTarget} | Issu: ${redTarget})</div>`;
             document.getElementById('pDone').innerText = doneDay;
             if(document.getElementById('dashRate')) document.getElementById('dashRate').innerText = (targetMonth > 0 ? Math.round((doneMonth/targetMonth)*100) : 0) + "%";
-        };
+        }
 
         window.syncManagerView = () => {
             let filterDay = parseInt(document.getElementById('managerDayFilter').value);
@@ -504,7 +493,7 @@
             document.getElementById('managerCCBody').innerHTML = html || "<tr><td colspan='7'>No records found for selected day/filter.</td></tr>";
             document.getElementById('fTarget').innerHTML = `${targetOpen + targetRed} <span style="font-size:12px; opacity:0.8;">(Open: ${targetOpen} | Issu: ${targetRed})</span>`;
             document.getElementById('fCalled').innerText = called;
-        };
+        }
 
         window.renderFieldList = () => {
             let filterAgent = document.getElementById('agentFilterDrop') ? document.getElementById('agentFilterDrop').value : "ALL";
@@ -549,7 +538,7 @@
                 document.getElementById(`rRateAmt_${code}`).innerText = `${amtRate}%`;
                 document.getElementById(`rRateAcc_${code}`).innerText = `${accRate}%`;
             });
-        };
+        }
 
         window.renderStaffUI = () => {
             let html = "", targetOpen = 0, targetRed = 0;
@@ -590,7 +579,7 @@
             });
             document.getElementById('staffTableBody').innerHTML = html || "<tr><td colspan='8'>අද දිනට ඉලක්ක නොමැත! (All targets completed)</td></tr>";
             document.getElementById('staffTargetNum').innerHTML = `${targetOpen + targetRed} <span style="font-size:14px; opacity:0.8;">(Open: ${targetOpen} | Issu: ${targetRed})</span>`;
-        };
+        }
 
         window.searchGlobalStaffTable = () => {
             let f = document.getElementById('staffSearch').value.toLowerCase().trim();
@@ -621,19 +610,15 @@
             let btn = document.querySelector(`#row_${docId} button`); btn.innerText = "SAVED"; btn.style.background = "#4caf50";
             setTimeout(() => { let row = document.getElementById(`row_${docId}`); if(row) row.style.display = 'none'; }, 800);
             if(document.getElementById('staffSearch').value.trim() === "") window.renderStaffUI(); 
-        };
+        }
 
-        // 🌟 DOWNLOAD PHONE DIRECTORY WITH NAMES 🌟
         window.downloadPhoneDirectory = () => {
-            let csvContent = "data:text/csv;charset=utf-8,NIC,Customer Name,Phone Number\n";
-            for (const [nic, data] of Object.entries(phoneDirectory)) { 
-                let cleanName = (data.name || 'N/A').replace(/,/g, ''); 
-                csvContent += `${nic},"${cleanName}",${data.phone}\n`; 
-            }
+            let csvContent = "data:text/csv;charset=utf-8,NIC,Name,Phone Number\n";
+            for (const [nic, data] of Object.entries(phoneDirectory)) { csvContent += `${nic},"${data.name || ''}",${data.phone}\n`; }
             var encodedUri = encodeURI(csvContent); var link = document.createElement("a");
             link.setAttribute("href", encodedUri); link.setAttribute("download", "Singer_Phone_Directory.csv");
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        };
+        }
 
         window.showMasterModal = (nic, prod, addr, date) => {
             document.getElementById('m_nic').innerText = nic; document.getElementById('m_prod').innerText = prod;
@@ -654,18 +639,20 @@
                     
                     let deleteIds = []; let resetRedIds = []; 
                     
+                    const getVal = (row, ...keys) => {
+                        let targetKeys = keys.map(k => k.toUpperCase());
+                        for (let k in row) {
+                            let cleanK = String(k).trim().toUpperCase().replace(/[\r\n]/g, '');
+                            if (targetKeys.includes(cleanK)) return row[k];
+                        }
+                        return "";
+                    };
+
                     let excelIds = data.map(rawRow => {
-                        let cleanRow = {};
-                        for (let k in rawRow) { 
-                            let cleanK = String(k).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-                            cleanRow[cleanK] = rawRow[k]; 
-                        }
                         let rawAcc = "";
-                        if (type === 'New') {
-                            rawAcc = cleanRow["ORIGINALACCTNO"] || cleanRow["ACCTNO"] || cleanRow["ACCNO"] || cleanRow["ACCOUNTNO"] || "";
-                        } else {
-                            rawAcc = cleanRow["ACCNO"] || cleanRow["ACCOUNTNO"] || cleanRow["ACCTNO"] || "";
-                        }
+                        if (type === 'New') rawAcc = getVal(rawRow, "ORIGINAL_ACCT_NO", "ACCT_NO", "ACC_NO");
+                        else rawAcc = getVal(rawRow, "ACC_NO");
+                        
                         return String(rawAcc).toUpperCase().replace(/[^A-Z0-9]/g, '');
                     }).filter(id => id.length >= 4);
 
